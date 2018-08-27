@@ -1,31 +1,35 @@
-node {
- 	// Clean workspace before doing anything
-    deleteDir()
+pipeline {
+    agent any
+    triggers {
+        cron('30 5 * * *')
+    }
+    options {
+        buildDiscarder(logRotator(daysToKeepStr: '50', numToKeepStr: '5'))
+        timestamps()
+        //Abort the build if it's stuck after 30 minutes
+        timeout(time: 30, unit: 'MINUTES')
+    }
+    
+    stages {
 
-    try {
-        stage ('Clone') {
-        	checkout scm
+        stage("Prune Docker volumes"){
+            agent any
+                    steps {
+                        script {
+                                sh "ssh docker@192.168.1.180 -t 'docker system prune -af --volumes'"
+                        }
+                    }                 
         }
-        stage ('Build') {
-        	sh "echo 'shell scripts to build project...'"
+	
+	stage("Delete Workspace"){
+            agent any
+            steps {
+                script {
+                    cleanWs deleteDirs: true
+                    deleteDir()
+                }
+            }
         }
-        stage ('Tests') {
-	        parallel 'static': {
-	            sh "echo 'shell scripts to run static tests...'"
-	        },
-	        'unit': {
-	            sh "echo 'shell scripts to run unit tests...'"
-	        },
-	        'integration': {
-	            sh "echo 'shell scripts to run integration tests...'"
-	        }
-        }
-      	stage ('Deploy') {
-            sh "echo 'shell scripts to deploy to server...'"
-      	}
-    } catch (err) {
-        currentBuild.result = 'FAILED'
-        throw err
+
     }
 }
-
