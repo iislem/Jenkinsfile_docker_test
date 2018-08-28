@@ -1,8 +1,5 @@
 pipeline {
     agent any
-    triggers {
-        cron('30 5 * * *')
-    }
     options {
         buildDiscarder(logRotator(daysToKeepStr: '50', numToKeepStr: '5'))
         timestamps()
@@ -11,7 +8,6 @@ pipeline {
     }
     
     stages {
-
         stage("Prune Docker volumes"){
             agent any
                     steps {
@@ -19,17 +15,6 @@ pipeline {
                                 sh "ssh docker@192.168.1.180 -t 'docker system prune -af --volumes'"
                         }
                     }                 
-        }
-	
-	stage("Delete Workspace"){
-            agent any
-            steps {
-                script {
-                    cleanWs deleteDirs: true
-                    deleteDir()
-                }
-            }
-        }
-
+        	}
     }
 }
