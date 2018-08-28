@@ -12,7 +12,7 @@ pipeline {
             agent any
                     steps {
                         script {
-                                sh "ssh docker@192.168.1.180 -t 'docker system prune -af --volumes'"
+                                sh "ssh docker@192.168.1.54 -t 'docker system prune -af --volumes'"
                         }
                     }                 
         	}
